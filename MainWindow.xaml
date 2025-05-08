@@ -1,0 +1,85 @@
+﻿<Window x:Class="AutoMacroWpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AutoMacroWpf"
+        mc:Ignorable="d"
+        Title="" Height="430" Width="480" Background="#F4F6FB" WindowStartupLocation="CenterScreen">
+    <Window.Resources>
+        <Style x:Key="ModernButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#4F8CFF"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0,6"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#2563EB"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="ModernComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="BorderBrush" Value="#4F8CFF"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="Margin" Value="0,0,0,0"/>
+        </Style>
+        <Style x:Key="ModernTextBoxStyle" TargetType="TextBox">
+            <Setter Property="BorderBrush" Value="#4F8CFF"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="Margin" Value="12,0,0,0"/>
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Border Background="White" CornerRadius="18" Padding="30" Margin="0,30,0,30">
+            <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Width="420">
+                <TextBlock Text="Auto Macro" FontSize="14" FontWeight="Bold" Foreground="#2D3748" Margin="0,0,0,4" HorizontalAlignment="Center"/>
+                <Button x:Name="btnStartRecording" Content="Kaydı Başlat (F3)" Height="26" FontSize="12" Style="{StaticResource ModernButtonStyle}" Click="btnStartRecording_Click" Margin="0,0,0,4"/>
+                <Button x:Name="btnStopRecording" Content="Kaydı Bitir (F4)" Height="26" FontSize="12" Style="{StaticResource ModernButtonStyle}" Click="btnStopRecording_Click" Margin="0,0,0,8"/>
+                <Button x:Name="btnLoadRecording" Content="Kayıt Yükle" Height="26" FontSize="12" Style="{StaticResource ModernButtonStyle}" Click="btnLoadRecording_Click" Margin="0,0,0,4"/>
+                <Button x:Name="btnPlayLoaded" Content="Kayıtlıyı Başlat (Home)" Height="26" FontSize="12" Style="{StaticResource ModernButtonStyle}" Click="btnPlayLoaded_Click" Margin="0,0,0,4"/>
+                <Button x:Name="btnStopPlaying" Content="Kayıtlıyı Bitir (End)" Height="26" FontSize="12" Style="{StaticResource ModernButtonStyle}" Click="btnStopPlaying_Click" Margin="0,0,0,8"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,4">
+                    <TextBlock Text="Scroll Step (varsayılan 120):" FontSize="12" VerticalAlignment="Center"/>
+                    <TextBox x:Name="txtScrollStep" Width="40" Height="20" FontSize="12" Margin="4,0,0,0" Text="120"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,4">
+                    <Button x:Name="btnScrollTest" Content="Scroll Testi Başlat" Width="90" Height="22" FontSize="12" Click="btnScrollTest_Click"/>
+                    <TextBlock x:Name="txtScrollTestResult" FontSize="12" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="45,0,0,8" VerticalAlignment="Center">
+                    <RadioButton x:Name="rbLoop" Content="Loop" IsChecked="True" FontSize="12" Margin="0,0,8,0" Width="150" Background="White"/>
+                    <RadioButton x:Name="rbRepeat" Content="X Kez Tekrarla" FontSize="12"/>
+                    <TextBox x:Name="txtRepeatCount" Width="41" Height="20" FontSize="12" VerticalContentAlignment="Center" Margin="4,0,0,0"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,4">
+                    <TextBlock Text="Oynatma Hızı (ms):" FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <Slider x:Name="sliderInterval" Minimum="10" Maximum="1000" Value="50" Width="120" TickFrequency="10" IsSnapToTickEnabled="True" VerticalAlignment="Center" Margin="0,0,8,0" PreviewKeyDown="sliderInterval_PreviewKeyDown"/>
+                    <TextBlock x:Name="txtIntervalValue" Text="50" FontSize="12" VerticalAlignment="Center" Width="32"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
+                    <TextBlock Text="Durma Koşulu Resmi:" FontSize="12" VerticalAlignment="Center"/>
+                    <Button x:Name="btnLoadStopImage" Content="Resim Yükle" Width="90" Height="22" FontSize="12" Click="btnLoadStopImage_Click" Margin="8,0,0,0"/>
+                    <Image x:Name="imgStopPreview" Width="40" Height="22" Margin="8,0,0,0"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,8">
+                    <TextBlock Text="Devam Koşulu Resmi:" FontSize="12" VerticalAlignment="Center"/>
+                    <Button x:Name="btnLoadContinueImage" Content="Resim Yükle" Width="90" Height="22" FontSize="12" Click="btnLoadContinueImage_Click" Margin="8,0,0,0"/>
+                    <Image x:Name="imgContinuePreview" Width="40" Height="22" Margin="8,0,0,0"/>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
