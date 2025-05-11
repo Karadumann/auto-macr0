@@ -25,7 +25,6 @@ namespace AutoMacroWpf
         private int repeatCounter = 0;
         private int repeatTarget = 1;
         private bool isScrollTestMode = false;
-        private bool isDragging = false;
         private Bitmap stopConditionImage = null;
         private Bitmap continueConditionImage = null;
         private ProgressWindow progressWindow = null;
@@ -145,37 +144,31 @@ namespace AutoMacroWpf
 
         private void GlobalHook_MouseDownExt(object? sender, MouseEventExtArgs e)
         {
-            if (_isRecording && e.Button == MouseButtons.Left)
+            if (_isRecording)
             {
-                isDragging = true;
-                _recordedEvents.Add($"MouseDown {e.X},{e.Y}");
-            }
-            else if (_isRecording)
-            {
-                string button = "Unknown";
-                if (e.Button == MouseButtons.Right)
-                    button = "Right";
+                if (e.Button == MouseButtons.Left)
+                {
+                    _recordedEvents.Add($"Mouse Left {e.X},{e.Y}");
+                }
+                else if (e.Button == MouseButtons.Right)
+                {
+                    _recordedEvents.Add($"Mouse Right {e.X},{e.Y}");
+                }
                 else if (e.Button == MouseButtons.Middle)
-                    button = "Middle";
-                _recordedEvents.Add($"Mouse {button} {e.X},{e.Y}");
+                {
+                    _recordedEvents.Add($"Mouse Middle {e.X},{e.Y}");
+                }
             }
         }
 
         private void GlobalHook_MouseMove(object? sender, System.Windows.Forms.MouseEventArgs e)
         {
-            if (_isRecording && isDragging)
-            {
-                _recordedEvents.Add($"MouseMove {e.X},{e.Y}");
-            }
+            // Mouse hareketlerini kaydetmeye gerek yok
         }
 
         private void GlobalHook_MouseUpExt(object? sender, MouseEventExtArgs e)
         {
-            if (_isRecording && isDragging && e.Button == MouseButtons.Left)
-            {
-                isDragging = false;
-                _recordedEvents.Add($"MouseUp {e.X},{e.Y}");
-            }
+            // Mouse up olaylarını kaydetmeye gerek yok
         }
 
         private void GlobalHook_KeyDown(object? sender, KeyEventArgs e)
@@ -196,7 +189,7 @@ namespace AutoMacroWpf
         {
             if (isScrollTestMode)
             {
-                txtScrollTestResult.Text = "Mouse tekerleğini bir kez çevirin...";
+                txtScrollTestResult.Text = $"Mouse tekerleği değeri: {e.Delta}";
                 txtScrollStep.Text = Math.Abs(e.Delta).ToString();
                 isScrollTestMode = false;
                 return;
@@ -205,6 +198,7 @@ namespace AutoMacroWpf
             {
                 string direction = e.Delta > 0 ? "Up" : "Down";
                 _recordedEvents.Add($"Scroll {direction} {e.X},{e.Y},{e.Delta}");
+                Console.WriteLine($"Scroll kaydedildi: {direction} {e.X},{e.Y},{e.Delta}"); // Debug için
             }
         }
 
@@ -248,13 +242,41 @@ namespace AutoMacroWpf
 
         private void SimulateEvent(string ev)
         {
-            if (ev.StartsWith("MouseDown "))
+            if (ev.StartsWith("Mouse "))
             {
-                var coords = ev.Substring(9).Split(',');
-                if (coords.Length == 2 && int.TryParse(coords[0], out int x) && int.TryParse(coords[1], out int y))
+                var parts = ev.Split(' ');
+                if (parts.Length == 3)
                 {
-                    System.Windows.Forms.Cursor.Position = new System.Drawing.Point(x, y);
-                    mouse_event(MOUSEEVENTF_LEFTDOWN, (uint)x, (uint)y, 0, 0);
+                    var button = parts[1];
+                    var coords = parts[2].Split(',');
+                    if (coords.Length == 2 && int.TryParse(coords[0], out int x) && int.TryParse(coords[1], out int y))
+                    {
+                        System.Windows.Forms.Cursor.Position = new System.Drawing.Point(x, y);
+                        uint ux = (uint)x;
+                        uint uy = (uint)y;
+                        
+                        if (button == "Left")
+                        {
+                            // Önce imleci pozisyona taşı
+                            System.Windows.Forms.Cursor.Position = new System.Drawing.Point(x, y);
+                            Thread.Sleep(200); // 200ms bekle
+
+                            // Mouse Down
+                            mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+                            Thread.Sleep(100); // 100ms bekle
+                            // Mouse Up
+                            mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+                            Thread.Sleep(200); // 200ms bekle
+                        }
+                        else if (button == "Right")
+                        {
+                            mouse_event(MOUSEEVENTF_RIGHTDOWN | MOUSEEVENTF_RIGHTUP, ux, uy, 0, 0);
+                        }
+                        else if (button == "Middle")
+                        {
+                            mouse_event(0x0020 | 0x0040, ux, uy, 0, 0);
+                        }
+                    }
                 }
             }
             else if (ev.StartsWith("MouseMove "))
@@ -274,33 +296,6 @@ namespace AutoMacroWpf
                     mouse_event(MOUSEEVENTF_LEFTUP, (uint)x, (uint)y, 0, 0);
                 }
             }
-            else if (ev.StartsWith("Mouse "))
-            {
-                var parts = ev.Split(' ');
-                if (parts.Length == 3)
-                {
-                    var button = parts[1];
-                    var coords = parts[2].Split(',');
-                    if (coords.Length == 2 && int.TryParse(coords[0], out int x) && int.TryParse(coords[1], out int y))
-                    {
-                        System.Windows.Forms.Cursor.Position = new System.Drawing.Point(x, y);
-                        uint ux = (uint)x;
-                        uint uy = (uint)y;
-                        if (button == "Left")
-                        {
-                            mouse_event(MOUSEEVENTF_LEFTDOWN | MOUSEEVENTF_LEFTUP, ux, uy, 0, 0);
-                        }
-                        else if (button == "Right")
-                        {
-                            mouse_event(MOUSEEVENTF_RIGHTDOWN | MOUSEEVENTF_RIGHTUP, ux, uy, 0, 0);
-                        }
-                        else if (button == "Middle")
-                        {
-                            mouse_event(0x0020 | 0x0040, ux, uy, 0, 0);
-                        }
-                    }
-                }
-            }
             else if (ev.StartsWith("Scroll "))
             {
                 var parts = ev.Split(' ');
@@ -309,13 +304,26 @@ namespace AutoMacroWpf
                     var vals = parts[2].Split(',');
                     if (vals.Length == 3 && int.TryParse(vals[0], out int x) && int.TryParse(vals[1], out int y) && int.TryParse(vals[2], out int delta))
                     {
+                        Console.WriteLine($"Scroll olayı işleniyor: {ev}");
                         System.Windows.Forms.Cursor.Position = new System.Drawing.Point(x, y);
                         int userStep = 120;
                         if (int.TryParse(txtScrollStep.Text, out int val) && val > 0)
+                        {
                             userStep = val;
+                            Console.WriteLine($"Kullanıcı scroll adımı: {userStep}");
+                        }
                         int playDelta = Math.Sign(delta) * userStep;
+                        Console.WriteLine($"Scroll delta değeri: {playDelta}");
                         SimulateScroll(playDelta);
                     }
+                    else
+                    {
+                        Console.WriteLine($"Scroll olayı geçersiz format: {ev}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Scroll olayı yanlış parça sayısı: {ev}");
                 }
             }
             else if (ev.StartsWith("Key "))
@@ -327,15 +335,38 @@ namespace AutoMacroWpf
 
         private void SimulateScroll(int delta)
         {
-            INPUT[] inputs = new INPUT[1];
-            inputs[0].type = 0;
-            inputs[0].mi.dx = 0;
-            inputs[0].mi.dy = 0;
-            inputs[0].mi.mouseData = (uint)delta;
-            inputs[0].mi.dwFlags = MOUSEEVENTF_WHEEL;
-            inputs[0].mi.time = 0;
-            inputs[0].mi.dwExtraInfo = IntPtr.Zero;
-            SendInput(1, inputs, Marshal.SizeOf(typeof(INPUT)));
+            try
+            {
+                // Önce kısa bir bekleme
+                Thread.Sleep(100);
+
+                // Scroll işlemi
+                INPUT[] inputs = new INPUT[1];
+                inputs[0].type = 0; // INPUT_MOUSE
+                inputs[0].mi.dx = 0;
+                inputs[0].mi.dy = 0;
+                inputs[0].mi.mouseData = (uint)delta;
+                inputs[0].mi.dwFlags = MOUSEEVENTF_WHEEL;
+                inputs[0].mi.time = 0;
+                inputs[0].mi.dwExtraInfo = IntPtr.Zero;
+
+                uint result = SendInput(1, inputs, Marshal.SizeOf(typeof(INPUT)));
+                if (result == 0)
+                {
+                    Console.WriteLine($"Scroll simülasyonu başarısız. Hata kodu: {Marshal.GetLastWin32Error()}");
+                }
+                else
+                {
+                    Console.WriteLine($"Scroll simülasyonu başarılı. Delta: {delta}");
+                }
+
+                // Scroll sonrası bekleme
+                Thread.Sleep(200);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Scroll simülasyonu sırasında hata: {ex.Message}");
+            }
         }
 
         [DllImport("user32.dll")]
