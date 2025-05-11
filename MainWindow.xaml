@@ -65,6 +65,10 @@
                     <TextBox x:Name="txtRepeatCount" Width="41" Height="20" FontSize="12" VerticalContentAlignment="Center" Margin="4,0,0,0"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,4">
+                    <TextBlock Text="Döngü Bekleme Süresi (sn):" FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                    <TextBox x:Name="txtLoopDelay" Width="41" Height="20" FontSize="12" VerticalContentAlignment="Center" Text="0"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,4">
                     <TextBlock Text="Oynatma Hızı (ms):" FontSize="12" VerticalAlignment="Center" Margin="0,0,8,0"/>
                     <Slider x:Name="sliderInterval" Minimum="10" Maximum="1000" Value="50" Width="120" TickFrequency="10" IsSnapToTickEnabled="True" VerticalAlignment="Center" Margin="0,0,8,0" PreviewKeyDown="sliderInterval_PreviewKeyDown"/>
                     <TextBlock x:Name="txtIntervalValue" Text="50" FontSize="12" VerticalAlignment="Center" Width="32"/>

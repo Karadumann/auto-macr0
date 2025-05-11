@@ -8,6 +8,7 @@ using System.Windows.Media.Imaging;
 using System.Drawing.Imaging;
 using OpenCvSharp;
 using OpenCvSharp.Extensions;
+using System.Threading.Tasks;
 
 namespace AutoMacroWpf
 {
@@ -122,6 +123,15 @@ namespace AutoMacroWpf
                     }
                     return;
                 }
+
+                // Bekleme süresini al ve uygula
+                if (double.TryParse(txtLoopDelay.Text, out double delaySeconds) && delaySeconds > 0)
+                {
+                    _playTimer.Stop();
+                    Task.Delay((int)(delaySeconds * 1000)).Wait();
+                    _playTimer.Start();
+                }
+
                 _playIndex = 0;
                 if (_recordedEvents.Count > 0 && _recordedEvents[0].StartsWith("StartPos "))
                 {
